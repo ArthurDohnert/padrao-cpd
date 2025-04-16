@@ -1,6 +1,5 @@
-100000 sorted com shellsort. movimentacoes: 18162419, tempo: 1804.9139976501465 ms
-100000 sorted com 3n+1. movimentacoes: 967146, tempo: 124.15146827697754 ms
-100000 sorted com ciura. movimentacoes: 1236363, tempo: 135.86878776550293 ms
-100 sorted com shellsort. movimentacoes: 3118, tempo: 1.0001659393310547 ms
-100 sorted com 3n+1. movimentacoes: 342, tempo: 0.0 ms
-100 sorted com ciura. movimentacoes: 405, tempo: 0.0 ms
+algoritmo,tamanho,movimentacoes,tempo
+Radix LSD,100,800,0.000000
+Radix LSD,100000,1000000,116.925955
+Radix MSD,100,558,0.000000
+Radix MSD,100000,1000000,184.416771

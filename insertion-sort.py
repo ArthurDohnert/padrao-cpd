@@ -1,91 +1,117 @@
 import random
 import time
+import csv
 
-potencias_de_dois = [1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,65536,131072,262144,524288,1048576]
-tres_n_mais_um = [1,4,13,40,121,364,1093,3280,9841,29524,88573,265720,797161,2391484]
-ciura = [1,4,10,23,57,132,301,701,1577,3548,7983,17961,40412,90927,204585,460316,1035711]
-
-tempo = [0,0,0,0,0,0]
-movimentacoes = [0,0,0,0,0,0]
+tempo = 0
+movimentacoes = 0
 
 def generate_random_array(n, seed):
-  random_array = [random.randint(0, 10000) for _ in range(n)]  # Generates numbers between 0 and 10000
-  return random_array
+    random.seed(seed)
+    random_array = [random.randint(0, 10000) for _ in range(n)]  # Gera números entre 0 e 10000
+    return random_array
 
-# passe os parâmetros para gerar o vetor aleatório
-seed = 587540 # id do portal do aluno
+# Parâmetros para gerar os vetores aleatórios
+seed = 587540
 array100 = generate_random_array(100, seed)
-array1000000 = generate_random_array(100000, seed)
+array100000 = generate_random_array(100000, seed)
 
-# salve no formato CSV
-import csv
+# Salva no formato CSV
 with open('random_array.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(array100)
-    writer.writerow(array1000000)
+    writer.writerow(array100000)
 
-
-# Implementação da função de ordenação
-
-def shell_sort(arr, intervalo, sequencia_para_array):
+# Implementação do Radix Sort LSD
+def radix_sort_lsd(arr):
+    global movimentacoes, tempo
+    movimentacoes = 0  # Zera contador antes de cada execução
     start_time = time.time()
-    tamanho_array = len(arr)
-    intervalo.reverse()
-    valor_no_intervalo = 0
-    mov = 0
 
-    while (valor_no_intervalo < len(intervalo)):
-        h = intervalo[valor_no_intervalo]
-        for i in range(h, tamanho_array):
-            temp = arr[i]
-            j = i
-            while j >= h and arr[j - h] > temp:
-                arr[j] = arr[j - h]
-                j -= h
-                mov += 1
-            arr[j] = temp
-            mov += 1
-        
-        valor_no_intervalo += 1
+    # Cria uma cópia para não modificar o array original
+    arr = arr[:]
+    
+    if len(arr) == 0:
+        tempo = time.time() - start_time
+        return arr
 
-    end_time = time.time()
-    execution_time = (end_time - start_time) * 1000 # multiplicar por 1000 gera o tempo em ms
+    max_num = max(arr)
+    exp = 1  # Começa pelas unidades
 
-    movimentacoes[sequencia_para_array] = mov
-    tempo[sequencia_para_array] = execution_time
+    while max_num // exp > 0:
+        # 10 buckets para base decimal (0 a 9)
+        buckets = [[] for _ in range(10)]
 
+        for number in arr:
+            index = (number // exp) % 10
+            buckets[index].append(number)
+            movimentacoes += 1
+
+        # Junta os buckets em um único array
+        arr = [num for bucket in buckets for num in bucket]
+        movimentacoes += len(arr)
+
+        exp *= 10
+
+    tempo = (time.time() - start_time) * 1000  # Tempo em milissegundos
     return arr
 
+# Radix Sort MSD (chamada principal)
+def radix_sort_msd(arr):
+    global tempo, movimentacoes
+    movimentacoes = 0
+    start_time = time.time()
 
+    arr_copy = arr[:]
+    max_num = max(arr_copy) if arr_copy else 0
+    max_digits = len(str(max_num))
 
-array100000_1 = array1000000
-array100000_2 = array1000000
-array100000_3 = array1000000
+    arr_sorted = _radix_sort_msd_recursive(arr_copy, max_digits - 1)
 
-array100_1 = array100
-array100_2 = array100
-array100_3 = array100
+    tempo = (time.time() - start_time) * 1000  # Tempo em milissegundos
+    return arr_sorted
 
-## Aqui ordenamos, com os três diferentes métodos, os arrays de 100000 e 100 elementos
+# Função recursiva do MSD
+def _radix_sort_msd_recursive(arr, digit):
+    global movimentacoes
+    if digit < 0 or len(arr) <= 1:
+        return arr
 
-sorted100000_1 = shell_sort(array100000_1, potencias_de_dois, 0)
-sorted100000_2 = shell_sort(array100000_2, tres_n_mais_um, 1)
-sorted100000_3 = shell_sort(array100000_3, ciura, 2)
+    buckets = [[] for _ in range(10)]
 
-sorted100_1 = shell_sort(array100_1, potencias_de_dois, 3)
-sorted100_2 = shell_sort(array100_2, tres_n_mais_um, 4)
-sorted100_3 = shell_sort(array100_3, ciura, 5)
+    for number in arr:
+        num_str = str(number).zfill(digit + 1)
+        index = int(num_str[-(digit + 1)])
+        buckets[index].append(number)
+        movimentacoes += 1
 
-## Saída
+    result = []
+    for bucket in buckets:
+        result.extend(_radix_sort_msd_recursive(bucket, digit - 1))
+        movimentacoes += len(bucket)
 
+    return result
+
+# Saída dos resultados
 output = []
-output.append(f"100000 sorted com shellsort. movimentacoes: {movimentacoes[0]}, tempo: {tempo[0]} ms")
-output.append(f"100000 sorted com 3n+1. movimentacoes: {movimentacoes[1]}, tempo: {tempo[1]} ms")
-output.append(f"100000 sorted com ciura. movimentacoes: {movimentacoes[2]}, tempo: {tempo[2]} ms")
-output.append(f"100 sorted com shellsort. movimentacoes: {movimentacoes[3]}, tempo: {tempo[3]} ms")
-output.append(f"100 sorted com 3n+1. movimentacoes: {movimentacoes[4]}, tempo: {tempo[4]} ms")
-output.append(f"100 sorted com ciura. movimentacoes: {movimentacoes[5]}, tempo: {tempo[5]} ms")
+output.append("algoritmo,tamanho,movimentacoes,tempo")
 
+# LSD com 100
+sorted_100_lsd = radix_sort_lsd(array100)
+output.append(f"Radix LSD,100,{movimentacoes},{tempo:.6f}")
+
+# LSD com 100000
+sorted_100000_lsd = radix_sort_lsd(array100000)
+output.append(f"Radix LSD,100000,{movimentacoes},{tempo:.6f}")
+
+# MSD com 100
+sorted_100_msd = radix_sort_msd(array100)
+output.append(f"Radix MSD,100,{movimentacoes},{tempo:.6f}")
+
+# MSD com 100000
+sorted_100000_msd = radix_sort_msd(array100000)
+output.append(f"Radix MSD,100000,{movimentacoes},{tempo:.6f}")
+
+# Salva no arquivo
 with open('resultados.txt', 'w') as file:
     for line in output:
         print(line)
